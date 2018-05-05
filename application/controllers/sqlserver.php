@@ -32,8 +32,5 @@ class Sqlserver extends CI_Controller {
         $srvempleados = $this->peticion($query);
         echo json_encode ($srvempleados);
     }
-    public function insertE () {
-        
-    }
     
 }

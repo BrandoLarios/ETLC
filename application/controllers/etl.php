@@ -20,31 +20,40 @@ class Etl extends CI_Controller  {
     }
 
     public function Empleados () {
+        //Datos de access
         $acsempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/access/acsEmpleados?table=acsempleados"));
-        //$srvempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/srvEmpleados?table=srvempleados"));
-        //var_dump($acsempleados);
-        //var_dump($srvempleados);
+        //variables access
         foreach($acsempleados as $ae){
-            $ace = $ae->id_Empleado;
-            $ane = strtoupper( $ae->Nombre." ".$ae->Apellido_Paterno." ".$ae->Apellido_Materno );
-
+            //Datos necesarios
+            $aid    = $ae->id_Empleado; 
+            $an     = $ae->Nombre;
+            $aap    = $ae->Apellido_Paterno;
+            $aam    = $ae->Apellido_Materno;
+            $arfc   = $ae->RFC;
+            //Formacion de nombre completo
+            $anc    = strtoupper( $an." ".$aap." ".$aam);
+            //Datos de server
             $srvempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/srvEmpleados?table=srvempleados"));
             foreach ($srvempleados as $se){
-                
-                $sce = $se->id_Empleado;
-                $sne = strtoupper( $se->Nombre." ".$se->Apellido_P." ".$se->Apellido_M );
-                if ($ane == $sne && $ace != $sce){
-                    //error cliente duplicado 
+                //Datos necesarios
+                $sid    = $se->id_Empleado; 
+                $sn     = $se->Nombre;
+                $sap    = $se->Apellido_P;
+                $sam    = $se->Apellido_M;
+                $srfc   = $se->RFC;
+                //Formacion de nombre completo
+                $snc    = strtoupper( $sn." ".$sap." ".$sam);
+                //Validadcion nombre ya ingresado
+                if ($aid == $sid && $anc != $snc){
+                    //Error duplicado de datos
                 }else {
-                    $id = $ae->id_Empleado; 
-                    $n = $ae->Nombre;
-                    $ap = $ae->Apellido_Paterno;
-                    $am = $ae->Apellido_Materno;
-                    $rfc = $ae->RFC;
-                    sqlsrv_query("INSERT INTO Empleados Values ()");
-                } 
+                    if (strlen($arfc) < 13 || strlen($arfc) > 13 ){
+                        echo "Error de longitud en rfc";
+                    }
+                }
+                
             }
-            echo $ace.' '.$ane.'<br/>';
+            echo $aid.' '.$anc.'<br/>';
         }
     }
 
