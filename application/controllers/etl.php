@@ -78,7 +78,7 @@ class Etl extends CI_Controller  {
                 sqlsrv_query($this->dwhcon,$query);
                 $errores++;
             }else{
-                $errores = 0;
+                $errores = 0;s
             }
         endforeach;
     }
