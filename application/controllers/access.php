@@ -26,22 +26,22 @@ class Access extends CI_Controller {
         $acsempleados = $this->peticion($query);
         echo json_encode($acsempleados);
     }
-    public function acsClientes() {
+    public function Clientes() {
         $query = "SELECT * FROM Clientes";
         $acsclientes = $this->peticion($query);
         echo json_encode($acsclientes);
     }
-    public function acsEspecies() {
+    public function Especies() {
         $query = "SELECT * FROM Especies";
         $acsmascotas = $this->peticion($query);
         echo json_encode($acsmascotas);
     }
-    public function acsRazas() {
+    public function Razas() {
         $query = "SELECT * FROM Razas";
         $acsmascotas = $this->peticion($query);
         echo json_encode($acsmascotas);
     } 
-    public function acsMascotas() {
+    public function Mascotas() {
         $query = "SELECT * FROM Mascotas";
         $acsmascotas = $this->peticion($query);
         echo json_encode($acsmascotas);
