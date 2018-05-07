@@ -27,10 +27,15 @@ class Sqlserver extends CI_Controller {
         return $tabla;
     }
 
-    public function srvEmpleados () {
+    public function Empleados () {
         $query = "SELECT * from Empleados";
         $srvempleados = $this->peticion($query);
         echo json_encode ($srvempleados);
+    }
+    public function Clientes () {
+        $query = "SELECT * from Clientes";
+        $srvclientes = $this->peticion($query);
+        echo json_encode ($srvclientes);
     }
     
 }

@@ -20,22 +20,22 @@ class Misc extends CI_Model{
         
         $meses = [
             "[Mes 0]",
-            "Enero",
-            "Febrero",
-            "Marzo",
-            "Abril",
-            "Mayo",
-            "Junio",
-            "Julio",
-            "Agosto",
-            "Septiembre",
-            "Octubre",
-            "Noviembre",
-            "Diciembre",
+            "01",
+            "02",
+            "03",
+            "04",
+            "05",
+            "06",
+            "07",
+            "08",
+            "09",
+            "10",
+            "11",
+            "12",
         ];
         $dia = date('d', strtotime($fecha));
         $mes = $meses[(int)date('m', strtotime($fecha))];
         $ano = date('Y', strtotime($fecha));
-        return $dia." de ".$mes." de ".$ano;
+        return $dia."/".$mes."/".$ano;
     }
 }
