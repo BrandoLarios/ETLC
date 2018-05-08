@@ -28,7 +28,7 @@ class Etl extends CI_Controller  {
         $this->srvempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Empleados?table=srvempleados"));
         $this->acsclientes  = json_decode(file_get_contents("http://localhost/ETLC/index.php/access/Clientes?table=acsclientes"));
         $this->srvclientes  = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Clientes?table=srvclientes"));
-        $this->acsmascotas  = json_decode(file_get_contents("http://localhost/ETLC/index.php/Excel/Mascotas?table=acsmascotas"));
+        $this->acsmascotas  = json_decode(file_get_contents("http://localhost/ETLC/index.php/Access/Mascotas?table=acsmascotas"));
         //$this->srvmascotas = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Mascotas?table=srvmascotas"));
     }
     
