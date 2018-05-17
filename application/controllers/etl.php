@@ -6,7 +6,10 @@ class Etl extends CI_Controller  {
     
     protected $dwhcon;
     protected $errorcon;
-    protected $acsempleados;protected $acsclientes;protected $acsmascotas; 
+    protected $creadorcon;
+    //Variables para access
+    protected $acsempleados;protected $acsclientes;protected $acsmascotas;protected $acsrazas; 
+    //Variables para sqlserver
     protected $srvempleados;protected $srvclientes;protected $srvmascotas;
 
     public function __construct () {
@@ -15,8 +18,10 @@ class Etl extends CI_Controller  {
         $server = 'localhost';
         $dwh = array("Database"=>"DwH");
         $error = array("Database"=>"Error");
+        $creador = array ("Database"=>"CradorDwH");
         $this->dwhcon = sqlsrv_connect($server,$dwh);
         $this->errorcon = sqlsrv_connect($server,$error);
+        $this->creadorcon = sqlsrv_connect($server,$creador);
         if ($dwh) {
             echo "Conexión de la base de datos establecida".'</br>';
         }else {
@@ -24,16 +29,17 @@ class Etl extends CI_Controller  {
             die(print_r(sqlsrv_errors(),true));
         }
         
-        $this->acsempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/access/Empleados?table=acsempleados"));
-        $this->srvempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Empleados?table=srvempleados"));
+        //$this->acsempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/access/Empleados?table=acsempleados"));
+        //$this->srvempleados = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Empleados?table=srvempleados"));
         $this->acsclientes  = json_decode(file_get_contents("http://localhost/ETLC/index.php/access/Clientes?table=acsclientes"));
         $this->srvclientes  = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Clientes?table=srvclientes"));
         $this->acsmascotas  = json_decode(file_get_contents("http://localhost/ETLC/index.php/Access/Mascotas?table=acsmascotas"));
-        //$this->srvmascotas = json_decode(file_get_contents("http://localhost/ETLC/index.php/sqlserver/Mascotas?table=srvmascotas"));
+        $this->acsrazas     = json_decode(file_get_contents("http://localhost/ETLC/index.php/Access/Razas?table=acsrazas"));
+        
     }
     
 
-    public function Empleados () {        
+    /*public function Empleados () {        
         $errores = 0;
         foreach($this->acsempleados as $ae):
             //Datos necesarios
@@ -84,7 +90,7 @@ class Etl extends CI_Controller  {
                 $errores = 0;
             }
         endforeach;
-    }
+    }*/
 
     public function Clientes () {
         $errores = 0;
@@ -97,11 +103,12 @@ class Etl extends CI_Controller  {
             $arfc   = $ac->RFC;
             $afnac  = $this->Misc->fancy_date($ac->Fecha_Nac);
             $asexo  = strtoupper($this->Misc->delete_numbers($ac->Sexo));
+            //echo $afnac.'</br>';
         //Formacion de nombre completo
             $anc    = strtoupper( $an." ".$aap." ".$aam);
         //Validacion con datos ya ingresados    
             if (count($this->srvclientes) > 0){
-                foreach ($this->srvclientes as $sc):
+                foreach ($this->srvclientes as $sc){
                     //Datos necesarios
                     $sid    = $sc->id_Cliente; 
                     $sn     = $sc->Nombre;
@@ -123,23 +130,28 @@ class Etl extends CI_Controller  {
                         sqlsrv_query($this->errorcon,$query);
                         $errores++;
                     }
-                endforeach;
-        //Fin
+                }
             }
-            if(substr($afnac,6,10) > 2000 || substr($afnac,6,10) < 1950){
+            if ($afnac == "Error"){
                 $terror = "Error 3: Fecha invalida";
-                $query = "INSERT INTO Clientes VALUES ($aid, '$an', '$aap', '$aam', '$arfc','$afnac','$asexo', '$terror', 'No')";
+                $query = "INSERT INTO Clientes VALUES ($aid, '$an', '$aap', '$aam', '$arfc', '', '$asexo', '$terror', 'No')";
                 sqlsrv_query($this->errorcon,$query);
                 $errores++;
             }
-            if ((strlen($arfc) > 13 || strlen($arfc) < 13) || strlen($arfc) == 0) {
-                $terror = "Error 4: RFC de tamaño incorrecto o vacio";
+            if((substr($afnac,6,10) > 2000 || substr($afnac,6,10) < 1950) & $afnac != 'Error'){
+                $terror = "Error 3: Fecha invalida";
+                $query = "INSERT INTO Clientes VALUES ($aid, '$an', '$aap', '$aam', '$arfc', '$afnac', '$asexo', '$terror', 'No')";
+                sqlsrv_query($this->errorcon,$query);
+                $errores++;
+            }
+            if ((strlen($arfc) > 13 || strlen($arfc) < 13) || strlen($arfc) == null) {
+                $terror = "Error 4: RFC invalido";
                 $query = "INSERT INTO Clientes VALUES ($aid, '$an', '$aap', '$aam', '$arfc','$afnac','$asexo', '$terror', 'No')";
                 sqlsrv_query($this->errorcon,$query);
                 $errores++;
             }
             if ($asexo != 'FEMENINO' && $asexo != 'MASCULINO'){
-                $terror = "Error 5: Valor de campo sexo invalido";
+                $terror = "Error 5: Sexo invalido";
                 $query = "INSERT INTO Clientes VALUES ($aid, '$an', '$aap', '$aam', '$arfc','$afnac','$asexo', '$terror', 'No')";
                 sqlsrv_query($this->errorcon,$query);
                 $errores++;
@@ -155,11 +167,57 @@ class Etl extends CI_Controller  {
     }
 
     public function Mascotas(){
-        if (count($this->acsmascotas) > 0){
-            echo 'Hay datos';
+        $errores = 0;
+        $coin = 0;
+        foreach ($this->acsmascotas as $am) {
+            $aid    = intval($am->id_Mascota);
+            $an     = $this->Misc->delete_numbers($am->Nombre);
+            $ag     = strtoupper($this->Misc->delete_numbers($am->Genero));
+            $ar     = $this->Misc->delete_numbers($am->Raza);
+            $aidc   = intval($am->id_Cliente);
+            //echo $aid.' '.$an.' '.$ag.' '.$ar.' '.$aidc.'<br>';
+            if($ag != 'MACHO' && $ag != 'HEMBRA'){
+                $terror = "Error 1: Error de genero";
+                $query = "INSERT INTO Mascotas VALUES ($aid, '$an', '$ag', '$ar', '$aidc', '$terror', 'No')";
+                sqlsrv_query($this->errorcon,$query);
+                $errores++;
+
+            }
+            if($ar == null){
+                $terror = "Error 2: Raza no encontrada";
+                $query = "INSERT INTO Mascotas VALUES ($aid, '$an', '$ag', '$ar', '$aidc', '$terror', 'No')";
+                sqlsrv_query($this->errorcon,$query);
+                $errores++;
+            }
+            foreach ($this->acsclientes as $ac){
+                $idcli = intval($ac->id_Cliente);
+                if($idcli == $aidc){
+                    echo $idcli.' '.$aid.'<br>';
+                    $coin++;
+                }
+            }
+            if ($coin == 0){
+                $terror = "Error 3: Cliente no encontrado";
+                $query = "INSERT INTO Mascotas VALUES ($aid, '$an', '$ag', '$ar', '$aidc', '$terror', 'No')";
+                sqlsrv_query($this->errorcon,$query);
+                $errores++;
+            }
+            if  ($errores == 0){
+                $query = "INSERT INTO Mascotas VALUES ($aid, '$an', '$ag', '$ar', '$aidc')";
+                sqlsrv_query($this->dwhcon,$query);
+            }
+            $errores=0;
+            $coin=0;
         }
-        else{
-            echo 'NO hay datos';
-        }
+    }
+
+    public function doetl () {
+        $this->Clientes();
+        $this->Mascotas();
+        $fecha = '16/05/18';
+        $query = "INSERT INTO Creador VALUES (1, 'Brando', '$fecha', 'Si')";
+        sqlsrv_query($this->creadorcon,$query);
+        
+        $this->load->view('etl_view');
     }
 }

@@ -1,14 +1,14 @@
 <?php
-class Sqlserver extends CI_Controller {
+class Errores extends CI_Controller {
 
-    protected $dwhcon;
+    protected $errorcon;
 
     public function __construct () {
         parent :: __construct();
         $server = 'localhost';
-        $dwh = array("Database"=>"DwH");
-        $this->dwhcon = sqlsrv_connect($server,$dwh);
-        if ($dwh) {
+        $error = array("Database"=>"Error");
+        $this->errorcon = sqlsrv_connect($server,$error);
+        if ($error) {
 
         }else {
             echo "Conexión de la base de datos no establecida";
@@ -17,7 +17,7 @@ class Sqlserver extends CI_Controller {
     }
 
     public function peticion ($query) {
-        $ptt = sqlsrv_query ($this->dwhcon,$query);
+        $ptt = sqlsrv_query ($this->errorcon,$query);
         $tabla = array();
         $i=0;
         while ($row = sqlsrv_fetch_array ($ptt)) {
@@ -26,17 +26,11 @@ class Sqlserver extends CI_Controller {
         }
         return $tabla;
     }
-
-    public function Empleados () {
-        $query = "SELECT * from Empleados";
-        $srvempleados = $this->peticion($query);
-        echo json_encode ($srvempleados);
-    }
     
     public function Clientes () {
         $query = "SELECT * from Clientes";
-        $srvclientes = $this->peticion($query);
-        echo json_encode ($srvclientes);
+        $errorclientes = $this->peticion($query);
+        echo json_encode ($errorclientes);
     }
     
 }

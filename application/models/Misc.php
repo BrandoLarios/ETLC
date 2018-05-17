@@ -15,10 +15,10 @@ class Misc extends CI_Model{
     }
     public static function fancy_date($fecha = NULL){
         if(empty($fecha)){
-            return "Fecha inválida.";
+            return "Error";
         }
-        
         $meses = [
+            //Cambia los numero por texto 
             "[Mes 0]",
             "01",
             "02",
